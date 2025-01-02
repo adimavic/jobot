@@ -6,7 +6,7 @@ import openpyxl
 import time
 import os
 import json
-
+import random
 
 # Function to fetch content from a URL
 config_file = rf"../input/config.json"
@@ -52,11 +52,10 @@ def search_job_postings(queries, num_results=10):
                 print(f"Found: {result}")
             if len(urls) >= num_results:  # Stop when enough URLs are collected
                 break
-            time.sleep(1)  # Add delay to avoid rate-limiting
     return urls
 
 # Function to save email addresses and their sources to Excel
-def save_to_excel(email_sources, filename="emails_with_sources.xlsx"):
+def save_to_excel(email_sources, filename="general_devops_2024.xlsx"):
     print("Saving to Excel file...")
     workbook = openpyxl.Workbook()
     sheet = workbook.active
@@ -86,8 +85,13 @@ def main():
     email_sources = set()
     for url in urls:
         print(f"Scraping page: {url}")
-        content = fetch_content(url)
         
+        content = fetch_content(url)
+
+        delay_seconds = random.uniform(2, 5)
+        print(f"Sleeping for {delay_seconds:.2f} seconds...")
+        time.sleep(delay_seconds)
+    
         # Extracting emails directly from the page content
         emails = extract_emails(content)
         if emails:
