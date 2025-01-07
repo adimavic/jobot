@@ -13,7 +13,7 @@ def extract_emails(text):
 def filter_emails(email):
     # Define unwanted patterns
     unwanted_patterns = [
-        r'support', r'service', r'example', r'info', r'noreply',r'privacy',r'name',r'abc',r'xyz',r'jo',r'test',r'resumeworded',
+        r'support', r'service', r'example', r'info', r'noreply',r'privacy',r'name',r'abc',r'xyz',r'jo',r'test',r'resumeworded',r'emial',
         r'admin', r'contact', r'help', r'feedback', r'sales', r'press',r'complaints',r'mailer',r'payment',r'collection',r'helpdesk',r'john',r'unsubscribe',r'firstname'
     ]
     # Define valid domain extensions
@@ -73,7 +73,7 @@ unique_emails = sorted(unique_emails)
 email_df = pd.DataFrame(unique_emails, columns=['Email'])
 
 # Write the DataFrame to a new Excel file
-output_file = 'validated_unique_emails22.xlsx'
+output_file = 'new.xlsx'
 email_df.to_excel(output_file, index=False)
 
 print(f"Validated file '{output_file}' created with {len(unique_emails)} unique and valid email addresses.")

@@ -7,6 +7,9 @@ import time
 import os
 import json
 import random
+import datetime
+
+file_time = datetime.datetime
 
 # Function to fetch content from a URL
 config_file = rf"../input/config.json"
@@ -55,7 +58,10 @@ def search_job_postings(queries, num_results=10):
     return urls
 
 # Function to save email addresses and their sources to Excel
-def save_to_excel(email_sources, filename="fresh_india_2025.xlsx"):
+def save_to_excel(email_sources, filename=None):
+    if filename is None:
+        file_time = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        filename = f"new_{file_time}.xlsx"
     print("Saving to Excel file...")
     workbook = openpyxl.Workbook()
     sheet = workbook.active

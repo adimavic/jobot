@@ -73,7 +73,7 @@ unique_emails = sorted(unique_emails)
 email_df = pd.DataFrame(unique_emails, columns=['Email'])
 
 # Write the DataFrame to a new Excel file
-output_file = 'validated_unique_emails22.xlsx'
+output_file = 'validated.xlsx'
 email_df.to_excel(output_file, index=False)
 
 print(f"Validated file '{output_file}' created with {len(unique_emails)} unique and valid email addresses.")
