@@ -63,7 +63,7 @@ def send_email(subject: str, body: str, excel_file: str, resume_file: str):
 
             # Send the email
             server.send_message(msg)
-            print(f"Email sent successfully to {receiver_email}")
+            print(f"True")
 
             # Close the attachment
             attachment.close()
@@ -78,7 +78,7 @@ subject = input_conf['subject']
 body = input_conf['body']
 
 # Input files
-excel_file = rf"../output/email_list.xlsx"
+excel_file = rf"../output/sample.xlsx"
 resume_file = rf"../input/AdityaKaleResume.pdf"  # Path to your resume PDF
 
 # Call the function
