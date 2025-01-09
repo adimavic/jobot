@@ -13,13 +13,11 @@ def extract_emails(text):
 def filter_emails(email):
     # Define unwanted patterns
     unwanted_patterns = [
-        r'support', r'service', r'example', r'info', r'noreply',r'privacy',r'name',r'abc',r'xyz',r'jo',r'test',r'resumeworded',r'emial',r'your',r'name',r'police',r'accommodations'
+        r'support', r'service', r'example', r'info', r'noreply',r'privacy',r'name',r'abc',r'xyz',r'jo',r'test',r'resumeworded',
         r'admin', r'contact', r'help', r'feedback', r'sales', r'press',r'complaints',r'mailer',r'payment',r'collection',r'helpdesk',r'john',r'unsubscribe',r'firstname'
     ]
     # Define valid domain extensions
-    valid_extensions = ['com', 'org', 'net', 'edu', 'gov', 'co', 'in','technology','ai']
-
-    current_org = ['realthingks']
+    valid_extensions = ['com', 'org', 'net', 'edu', 'gov', 'co', 'in','technology']
 
     # Check if the email contains any of the unwanted patterns
     for pattern in unwanted_patterns:
@@ -29,10 +27,6 @@ def filter_emails(email):
     # Check if the email has a valid domain extension
     domain_extension = email.split('.')[-1].lower()
     if domain_extension not in valid_extensions:
-        return False
-
-    domain_name = email.split('@')[-1].lower()
-    if domain_name in current_org:
         return False
 
     # Remove emails with prefixes like "to%3A"
@@ -79,7 +73,7 @@ unique_emails = sorted(unique_emails)
 email_df = pd.DataFrame(unique_emails, columns=['Email'])
 
 # Write the DataFrame to a new Excel file
-output_file = 'new.xlsx'
+output_file = 'validated_email.xlsx'
 email_df.to_excel(output_file, index=False)
 
 print(f"Validated file '{output_file}' created with {len(unique_emails)} unique and valid email addresses.")

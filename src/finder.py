@@ -61,7 +61,7 @@ def search_job_postings(queries, num_results=10):
 def save_to_excel(email_sources, filename=None):
     if filename is None:
         file_time = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-        filename = f"new_{file_time}.xlsx"
+        filename = f"Arabia_{file_time}.xlsx"
     print("Saving to Excel file...")
     workbook = openpyxl.Workbook()
     sheet = workbook.active
