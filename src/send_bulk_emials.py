@@ -8,90 +8,79 @@ import json
 import os
 import re
 
-# ---------------- FILE PATHS ----------------
+# --- File paths ---
 config_file = r"../input/config.json"
 excel_file = r"../data/001.xlsx"
 resume_file = r"../input/AdityaKale.pdf"
 
-# ---------------- READ JSON ----------------
+# --- Read configuration JSON ---
 def read_json(file_path):
     try:
         with open(file_path, "r", encoding="utf-8") as f:
             return json.load(f)
     except FileNotFoundError:
-        print(f"❌ Config file not found: {file_path}")
+        print(f"Config file not found: {file_path}")
         return None
 
-# ---------------- NAME EXTRACTION ----------------
+# --- Extract name intelligently ---
 def get_dynamic_name(name_field, email_field):
+    """Returns proper name if available, else derives from email."""
     name_field = str(name_field).strip() if pd.notna(name_field) else ""
     email_field = str(email_field).strip() if pd.notna(email_field) else ""
 
+    # If name is missing, extract from email
     if not name_field:
         if "@" in email_field:
             extracted = email_field.split("@")[0]
+            # Clean up: remove dots, digits, underscores
             extracted = re.sub(r"[\d._-]+", " ", extracted).strip().title()
-            return extracted
-        return ""
-    return name_field.title()
+            if extracted:
+                return extracted
+        return ""  # fallback
+    return name_field.strip().title()
 
-# ---------------- EMAIL SENDER ----------------
-def send_email(subject, body_template, excel_path, resume_path):
+# --- Send email function ---
+def send_email(subject: str, body_template: str, excel_path: str, resume_path: str):
     smtp_server = "smtp.gmail.com"
     smtp_port = 587
 
-    config = read_json(config_file)
-    sender_email = config["email"]
-    sender_password = config["token"]
+    input_conf = read_json(config_file)
+    sender_email = input_conf["email"]
+    sender_password = input_conf["token"]
 
-    # -------- READ EXCEL --------
     df = pd.read_excel(excel_path)
 
     # Ensure required columns
-    for col in ["Name", "Email", "Status"]:
+    required_cols = ["Name", "Email", "Status"]
+    for col in required_cols:
         if col not in df.columns:
             df[col] = ""
 
-    # -------- CLEAN + DEDUPLICATE EMAILS --------
-    df["Email"] = df["Email"].astype(str).str.strip().str.lower()
-    df["Status"] = df["Status"].astype(str).str.strip().str.lower()
-
-    # If duplicates exist, keep the one marked as 'sent'
-    df = (
-        df.sort_values(by="Status", ascending=False)
-          .drop_duplicates(subset="Email", keep="first")
-          .reset_index(drop=True)
-    )
-
-    print(f"📉 Deduplicated emails. Unique recipients: {len(df)}")
-
-    # -------- SMTP CONNECTION (REUSE) --------
-    server = smtplib.SMTP(smtp_server, smtp_port)
-    server.starttls()
-    server.login(sender_email, sender_password)
-
-    # -------- SEND LOOP --------
     for index, row in df.iterrows():
-        receiver_email = row["Email"]
-
-        if not receiver_email or receiver_email in ["nan", "none"]:
+        receiver_email = str(row["Email"]).strip()
+        if not receiver_email or receiver_email.lower() in ["nan", "none"]:
             continue
 
-        if row["Status"] == "sent":
-            continue  # already sent earlier
+        status = str(row["Status"]).strip().lower() if pd.notna(row["Status"]) else ""
+        if status == "sent":
+            continue  # skip already sent
 
+        # Get name dynamically
         name = get_dynamic_name(row["Name"], receiver_email)
+
+        # Dynamic greeting
         greeting = f"Hello {name}," if name else "Hello,"
-        body = body_template.replace("Hello,", greeting)
+        personalized_body = body_template.replace("Hello,", greeting)
 
         try:
+            # --- Setup email ---
             msg = MIMEMultipart()
             msg["From"] = sender_email
             msg["To"] = receiver_email
             msg["Subject"] = subject
-            msg.attach(MIMEText(body, "plain"))
+            msg.attach(MIMEText(personalized_body, "plain"))
 
-            # Attach resume
+            # --- Attach resume ---
             with open(resume_path, "rb") as attachment:
                 part = MIMEBase("application", "octet-stream")
                 part.set_payload(attachment.read())
@@ -102,26 +91,28 @@ def send_email(subject, body_template, excel_path, resume_path):
                 )
                 msg.attach(part)
 
+            # --- Send email ---
+            server = smtplib.SMTP(smtp_server, smtp_port)
+            server.starttls()
+            server.login(sender_email, sender_password)
             server.send_message(msg)
+            server.quit()
+
+            print(f"✅ Sent to {receiver_email} ({name})")
             df.at[index, "Status"] = "Sent"
-            print(f"✅ Sent to {receiver_email}")
 
         except Exception as e:
-            df.at[index, "Status"] = f"Failed"
-            print(f"❌ Failed for {receiver_email}: {e}")
+            print(f"❌ Failed to send to {receiver_email}: {e}")
+            df.at[index, "Status"] = f"Failed ({e})"
 
-    server.quit()
-
-    # -------- SAVE UPDATED EXCEL --------
+    # Save Excel with updated status
     df.to_excel(excel_path, index=False)
-    print("\n📘 Excel updated successfully.")
+    print("\n📘 Excel updated with 'Sent' status.")
 
-# ---------------- MAIN ----------------
+# --- Run script ---
 if __name__ == "__main__":
     config = read_json(config_file)
-    send_email(
-        subject=config["subject"],
-        body_template=config["body"],
-        excel_path=excel_file,
-        resume_path=resume_file
-    )
+    subject = config["subject"]
+    body = config["body"]
+
+    send_email(subject, body, excel_file, resume_file)
